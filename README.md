@@ -6,4 +6,4 @@ Repo for developing &amp; maintaning my Capstone Project for the Imperial AIML P
 
 23 October: Addition of initial data files and code files to perform light EDA and to begin building data infrastructure.
 
-Testing 123
+26 October: Extension of class definition to include more functionality.
