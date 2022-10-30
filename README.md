@@ -9,3 +9,5 @@ Repo for developing &amp; maintaning my Capstone Project for the Imperial AIML P
 26 October: main merged with extended class definitions to include more functionality.
 
 27 October: New branch extended-class created to further extend the class definitions
+
+30 October: Added extra class functionality
