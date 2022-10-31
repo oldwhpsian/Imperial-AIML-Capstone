@@ -11,3 +11,5 @@ Repo for developing &amp; maintaning my Capstone Project for the Imperial AIML P
 27 October: New branch extended-class created to further extend the class definitions
 
 30 October: Added extra class functionality
+
+31 October: Spooky! Stripped out class and function definitions and added them to a module called classes_functions to be imported.
