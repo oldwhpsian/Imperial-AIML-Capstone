@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[4]:
+# In[ ]:
 
 
 import pandas as pd
 import numpy as np
 
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF
+from scipy.stats import norm
 
-# In[3]:
+
+# In[ ]:
 
 
 class BlackBoxFunction():
@@ -26,6 +30,9 @@ class BlackBoxFunction():
         self.io = (x_dims, y_dims) # dimensions
         self.length = len(self.data)
         self.name = name
+        self.mesh_counts = {1: 1000, 2: 1000, 3: 200, 4: 50, 5: 12, 6: 10, 7: 6, 8: 6}
+        self.sample_density = self.mesh_counts[self.io[0]]
+
     
     def add_query(self, quiery, result):
         '''query must be a list, result a nu~mber'''
@@ -50,6 +57,25 @@ class BlackBoxFunction():
         backup_folder = f"data_backups/{date}_Week{week}_backup{backup_number}"
         backup_path = f"{backup_folder}/{self.name}_data.xlsx"
         self.data.to_excel(backup_path)
+        
+    def fit_GP_model(self, lengthscale, beta=5, noise_assumption=1e-10):
+        self.kernel = RBF(length_scale=lengthscale, length_scale_bounds='fixed')
+        self.model = GaussianProcessRegressor(kernel=self.kernel, alpha=noise_assumption)
+        self.lengthscale = lengthscale
+        self.beta = beta
+        self.noise_assumption = noise_assumption
+        self.model.fit(self.X, self.Y)
+    
+    def predict(self):
+        '''Returns a 2-tuple of UCB-PI predictions'''
+        self.grid = pd.DataFrame(make_mesh(self.io[0], 0, 0.999999, self.sample_density), columns=self.X.columns)
+        self.post_mean, self.post_std = self.model.predict(self.grid, return_std=True)
+        self.UCB_function = self.post_mean + self.beta*self.post_std
+        self.PI_function = norm.cdf((self.post_mean-max(self.Y)/self.post_std))
+        self.UCB_prediction = self.grid.iloc[np.argmax(self.UCB_function)].tolist()
+        self.PI_prediction = self.grid.iloc[np.argmax(self.PI_function)].tolist()
+        return (self.UCB_prediction, self.PI_prediction)
+        
 
 
 # In[ ]:
@@ -107,7 +133,7 @@ def backup_all_data(date, week, backup_number):
             function.backup_data(date, week, backup_number)
 
 
-# In[2]:
+# In[ ]:
 
 
 def make_mesh(dimensions, lower, upper, count):
