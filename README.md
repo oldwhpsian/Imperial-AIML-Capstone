@@ -13,3 +13,5 @@ Repo for developing &amp; maintaning my Capstone Project for the Imperial AIML P
 30 October: Added extra class functionality
 
 31 October: Spooky! Stripped out class and function definitions and added them to a module called classes_functions to be imported.
+
+1 November: Refactored code from the main program and incorporated it into the class definition
