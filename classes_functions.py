@@ -35,7 +35,7 @@ class BlackBoxFunction():
 
     
     def add_query(self, quiery, result):
-        '''query must be a list, result a nu~mber'''
+        '''query must be a list, result a number'''
         to_append = []
         for x in quiery:
             to_append.append(x)
@@ -72,10 +72,34 @@ class BlackBoxFunction():
         self.post_mean, self.post_std = self.model.predict(self.grid, return_std=True)
         self.UCB_function = self.post_mean + self.beta*self.post_std
         self.PI_function = norm.cdf((self.post_mean-max(self.Y)/self.post_std))
-        self.UCB_prediction = self.grid.iloc[np.argmax(self.UCB_function)].tolist()
-        self.PI_prediction = self.grid.iloc[np.argmax(self.PI_function)].tolist()
-        return (self.UCB_prediction, self.PI_prediction)
+        UCB_prediction = self.grid.iloc[np.argmax(self.UCB_function)].tolist()
+        PI_prediction = self.grid.iloc[np.argmax(self.PI_function)].tolist()
+        self.UCB_prediction_lst = [round(i, 6) for i in UCB_prediction]
+        self.PI_prediction_lst = [round(i, 6) for i in PI_prediction]
         
+        self.UCB_prediction_str = self.format_prediction(UCB_prediction)
+        self.PI_prediction_str = self.format_prediction(PI_prediction)
+        
+        self.redundant_UCB = self.redundant(self.UCB_prediction_lst)
+        self.redundant_PI = self.redundant(self.PI_prediction_lst)
+        
+        return (self.UCB_prediction_lst, self.PI_prediction_lst)
+    
+    
+    def redundant(self, query):
+        '''input must be a list'''
+        return (self.X == np.array(query)).all(1).any()
+        
+    def format_prediction(self, lst):
+        output = []
+        for number in lst:
+            num_str = str(round(number, 6))
+            wl = num_str.split('.')
+            if len(wl[1])<6:
+                wl[1] = wl[1] + '0'*(6-len(wl[1]))
+                num_str = '.'.join(wl)
+            output.append(num_str)
+        return('-'.join(output))
 
 
 # In[ ]:
