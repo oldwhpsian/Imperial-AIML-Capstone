@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[103]:
 
 
 import pandas as pd
@@ -12,7 +12,7 @@ from sklearn.gaussian_process.kernels import RBF
 from scipy.stats import norm
 
 
-# In[ ]:
+# In[104]:
 
 
 class BlackBoxFunction():
@@ -32,6 +32,8 @@ class BlackBoxFunction():
         self.name = name
         self.mesh_counts = {1: 1000, 2: 1000, 3: 200, 4: 50, 5: 12, 6: 10, 7: 6, 8: 6}
         self.sample_density = self.mesh_counts[self.io[0]]
+        self.grid = pd.DataFrame(make_mesh(self.io[0], 0, 0.999999, self.sample_density), columns=self.X.columns)
+
 
     
     def add_query(self, quiery, result):
@@ -68,7 +70,6 @@ class BlackBoxFunction():
     
     def predict(self):
         '''Returns a 2-tuple of UCB-PI predictions'''
-        self.grid = pd.DataFrame(make_mesh(self.io[0], 0, 0.999999, self.sample_density), columns=self.X.columns)
         self.post_mean, self.post_std = self.model.predict(self.grid, return_std=True)
         self.UCB_function = self.post_mean + self.beta*self.post_std
         self.PI_function = norm.cdf((self.post_mean-max(self.Y)/self.post_std))
@@ -100,9 +101,46 @@ class BlackBoxFunction():
                 num_str = '.'.join(wl)
             output.append(num_str)
         return('-'.join(output))
+    
+    def localize(self, distance, n_points):
+        max_idx = self.Y.idxmax()
+        optima = self.X.iloc[max_idx]
+        linear_spaces = []
+        for optimum in optima:
+            lower_range = 0 if optimum - distance < 0 else optimum - distance
+            upper_range = 1 if optimum + distance > 1 else optimum + distance
+            linear_spaces.append(np.linspace(lower_range, upper_range, n_points))
+#         [[np.linspace(optimum-distance, optimum+distance, n_points).tolist()] for optimum in optima]
+        meshgrid = np.meshgrid(*linear_spaces)
+        meshgrid = [grid.flatten() for grid in meshgrid]
+        self.grid = pd.DataFrame(np.transpose(meshgrid), columns = self.X.columns)
 
 
-# In[ ]:
+# In[105]:
+
+
+# f1 = BlackBoxFunction('function_1')
+
+
+# In[106]:
+
+
+# print(f1.Y.idxmax())
+# x = (f1.localize(0.1, f1.sample_density))
+# print(x)
+# f1.grid
+
+
+# In[89]:
+
+
+# meshgrid = ((np.meshgrid(*x)))
+# print(meshgrid)
+# mygrid = [array.flatten() for array in meshgrid]
+# print(pd.DataFrame(np.transpose(mygrid)))
+
+
+# In[7]:
 
 
 def import_weekly_queries_results(query_number):
@@ -157,7 +195,7 @@ def backup_all_data(date, week, backup_number):
             function.backup_data(date, week, backup_number)
 
 
-# In[ ]:
+# In[8]:
 
 
 def make_mesh(dimensions, lower, upper, count):
