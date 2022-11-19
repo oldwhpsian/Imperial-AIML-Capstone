@@ -103,7 +103,7 @@ class BlackBoxFunction():
         return('-'.join(output))
     
     def localize(self, distance, n_points):
-        max_idx = self.Y.idxmax()
+        max_idx = self.Y.astype('float').idxmax()
         optima = self.X.iloc[max_idx]
         linear_spaces = []
         for optimum in optima:
